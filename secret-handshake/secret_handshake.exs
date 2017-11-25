@@ -1,5 +1,12 @@
 defmodule SecretHandshake do
-  @codes ["wink", "double blink", "close your eyes", "jump"]
+  use Bitwise
+  @operations %{
+    0b00001 => "wink",
+    0b00010 => "double blink",
+    0b00100 => "close your eyes",
+    0b01000 => "jump"
+  }
+
   @doc """
   Determine the actions of a secret handshake based on the binary
   representation of the given `code`.
@@ -14,24 +21,11 @@ defmodule SecretHandshake do
 
   10000 = Reverse the order of the operations in the secret handshake
   """
+
   @spec commands(code :: integer) :: list(String.t())
   def commands(code) do
-    cond do
-      code < 1 || code > 31 -> []
-      code > 15 ->
-        Integer.digits(code, 2)
-        |> Enum.slice(1, 5)
-        |> Enum.zip(Enum.reverse(@codes))
-        |> Enum.filter(fn({status, _code}) -> status == 1 end)
-        |> Enum.map(fn({1, code}) -> code end)
-      code <= 15 ->
-        Integer.digits(code, 2)
-        |> Enum.reverse
-        |> Enum.zip(@codes)
-        |> Enum.filter(fn({status, _code}) -> status == 1 end)
-        |> Enum.map(fn({1, code}) -> code end)
-    end
-    # Integer.digits(code, 2)
+    result = for {key, value} <- @operations, (code &&& key) == key, do: value
+    if (code &&& 0b10000) == 0b10000, do: Enum.reverse(result), else: result
   end
 end
 
